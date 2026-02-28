@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dune War for Arrakis Card Tracker</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='15' y='10' width='70' height='80' rx='8' ry='8' fill='%235C4033' stroke='%23C4A574' stroke-width='3'/%3E%3Crect x='22' y='22' width='56' height='56' rx='4' fill='none' stroke='%23e8e0d5' stroke-width='2' opacity='0.9'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Cinzel', serif;
+      background: linear-gradient(135deg, #C4A574 0%, #8B7355 40%, #5C4033 70%, #3E2723 100%);
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"), linear-gradient(135deg, #C4A574 0%, #8B7355 40%, #5C4033 70%, #3E2723 100%);
+      color: #e8e0d5;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+      padding: 16px;
+    }
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      color: #e8e0d5;
+    }
+    .search-box {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .search-box input {
+      padding: 10px 16px;
+      border: 2px solid #5C4033;
+      border-radius: 8px;
+      background: rgba(62, 39, 35, 0.6);
+      color: #e8e0d5;
+      font-size: 1rem;
+      min-width: 400px;
+      width: 100%;
+      max-width: 560px;
+    }
+    .search-box input::placeholder {
+      color: #a09080;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: #4A7C59;
+    }
+    .expansion-filters {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      padding: 12px 20px;
+      margin-bottom: 20px;
+      max-width: 1400px;
+      margin-left: auto;
+      margin-right: auto;
+      background: rgba(62, 39, 35, 0.85);
+      border: 2px solid #5C4033;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .expansion-filters-label {
+      font-size: 0.95rem;
+      color: #c4b8a8;
+      font-weight: 600;
+    }
+    .expansion-checkboxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+    }
+    .expansion-checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #e8e0d5;
+    }
+    .expansion-checkbox-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #4A7C59;
+      cursor: pointer;
+    }
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .sections-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .section {
+      background: rgba(62, 39, 35, 0.85);
+      border: 2px solid #5C4033;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .section h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #8B7355;
+      color: #e8e0d5;
+    }
+    .faction-counters {
+      font-size: 0.85rem;
+      color: #c4b8a8;
+      margin-bottom: 12px;
+      padding: 8px 0;
+      line-height: 1.6;
+    }
+    .faction-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .faction-block h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+    .faction-block:first-child h3 { color: #4A7C59; }
+    .faction-block:last-child h3 { color: #8B3A3A; }
+    .cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 80px;
+      max-height: 360px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(139, 115, 85, 0.6) transparent;
+    }
+    .cards-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .cards-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .cards-list::-webkit-scrollbar-thumb {
+      background: rgba(139, 115, 85, 0.5);
+      border-radius: 3px;
+    }
+    .cards-list::-webkit-scrollbar-thumb:hover {
+      background: rgba(139, 115, 85, 0.7);
+    }
+    .card-tile {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: rgba(92, 64, 51, 0.9);
+      border-radius: 12px;
+      padding: 10px 12px;
+      transition: all 0.2s, opacity 0.25s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .card-tile--atreides {
+      border: 1px solid rgba(74, 124, 89, 0.5);
+      border-left: 4px solid #4A7C59;
+    }
+    .card-tile--harkonnen {
+      border: 1px solid rgba(139, 58, 58, 0.5);
+      border-left: 4px solid #8B3A3A;
+    }
+    .card-tile:hover {
+      background: rgba(107, 83, 64, 0.95);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+    }
+    .card-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .card-name {
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+    .card-faction-specific {
+      font-size: 0.75rem;
+      color: #a89888;
+      display: block;
+      margin-top: 2px;
+    }
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .tag-chip {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(139, 115, 85, 0.6);
+      color: #c4b8a8;
+      border: 1px solid rgba(139, 115, 85, 0.8);
+    }
+    .tag-chip--modal {
+      font-size: 0.9rem;
+      padding: 4px 10px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .card-text {
+      font-size: 0.8rem;
+      color: #a89888;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+    .card-actions button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-discard {
+      background: #8B3A3A;
+      color: white;
+    }
+    .btn-discard:hover:not(:disabled) {
+      background: #A52A2A;
+      transform: scale(1.02);
+    }
+    .btn-return {
+      background: #4A7C59;
+      color: white;
+      border: 2px solid #2D5A3D;
+    }
+    .btn-return:hover:not(:disabled) {
+      background: #5A8C69;
+      transform: scale(1.02);
+    }
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .calculator-section {
+      grid-column: 1 / -1;
+      background: rgba(62, 39, 35, 0.85);
+      border: 2px solid #5C4033;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    .calculator-section h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #8B7355;
+    }
+    .calculator-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .control-group label {
+      font-size: 0.85rem;
+      color: #b8a898;
+    }
+    .control-group select,
+    .control-group input {
+      padding: 8px 12px;
+      border: 2px solid #5C4033;
+      border-radius: 6px;
+      background: rgba(62, 39, 35, 0.6);
+      color: #e8e0d5;
+      font-size: 0.95rem;
+      min-width: 180px;
+    }
+    .control-group input[type="number"] {
+      min-width: 80px;
+    }
+    .btn-calculate {
+      padding: 10px 24px;
+      background: #4A7C59;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-calculate:hover {
+      background: #5A8C69;
+      transform: scale(1.02);
+    }
+    .calc-mode-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .calc-mode-toggle label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .calc-mode-toggle input[type="radio"] {
+      accent-color: #4A7C59;
+    }
+    .result-box {
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(92, 64, 51, 0.9);
+      border-radius: 8px;
+      border: 1px solid #5C4033;
+      min-height: 60px;
+    }
+    .result-box .result-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #4A7C59;
+    }
+    .result-box .result-error {
+      color: #8B3A3A;
+    }
+    .empty-state {
+      color: #8a7a6a;
+      font-style: italic;
+      padding: 12px;
+    }
+    @media (max-width: 900px) {
+      .sections-row {
+        grid-template-columns: 1fr;
+      }
+      .faction-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Модальное окно детального просмотра карты */
+    .card-modal-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+    .card-modal-overlay.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .card-modal-content {
+      position: relative;
+      max-width: 400px;
+      width: 90%;
+      background: linear-gradient(145deg, rgba(92, 64, 51, 0.98) 0%, rgba(62, 39, 35, 0.98) 100%);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      transform: scale(0.9);
+      transition: transform 0.25s ease;
+      overflow: hidden;
+    }
+    .card-modal-content::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(0,0,0,0.04) 100%);
+      pointer-events: none;
+    }
+    .card-modal-content--atreides {
+      border: 2px solid rgba(74, 124, 89, 0.6);
+    }
+    .card-modal-content--harkonnen {
+      border: 2px solid rgba(139, 58, 58, 0.6);
+    }
+    .card-modal-overlay.is-open .card-modal-content {
+      transform: scale(1);
+    }
+    .card-modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: rgba(0, 0, 0, 0.3);
+      color: #e8e0d5;
+      font-size: 1.2rem;
+      cursor: pointer;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 10;
+    }
+    .card-modal-close:hover {
+      background: rgba(139, 58, 58, 0.6);
+    }
+    .card-modal-card {
+      padding-top: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .card-modal-name {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #e8e0d5;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+    .card-modal-faction {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+    }
+    .card-modal-faction--atreides {
+      background: rgba(74, 124, 89, 0.4);
+      color: #6BCC7A;
+      border: 1px solid #4A7C59;
+    }
+    .card-modal-faction--harkonnen {
+      background: rgba(139, 58, 58, 0.4);
+      color: #E8A0A0;
+      border: 1px solid #8B3A3A;
+    }
+    .card-modal-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .card-modal-text {
+      font-size: 1rem;
+      color: #d8d0c5;
+      line-height: 1.5;
+      white-space: normal;
+      word-wrap: break-word;
+    }
+    .card-info {
+      cursor: pointer;
+    }
+
+    /* Drag and drop */
+    .card-tile[draggable="true"] {
+      cursor: grab;
+    }
+    .card-tile[draggable="true"]:active {
+      cursor: grabbing;
+    }
+    .card-tile.dragging {
+      opacity: 0.5;
+    }
+    .cards-list.drag-over {
+      background: rgba(74, 124, 89, 0.2);
+      border: 2px dashed #4A7C59;
+      border-radius: 8px;
+    }
+    #discardSection.drag-over {
+      background: rgba(128, 128, 128, 0.2);
+      border-color: #8a8a8a;
+      box-shadow: 0 0 0 2px rgba(128, 128, 128, 0.4);
+    }
+    #deckSection.drag-over {
+      background: rgba(74, 124, 89, 0.15);
+      border-color: rgba(74, 124, 89, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dune War for Arrakis Card Tracker</h1>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Поиск по названию, фракции, тегам или тексту карты...">
+    </div>
+  </header>
+
+  <div class="expansion-filters" id="expansionFilters">
+    <span class="expansion-filters-label">Компонент:</span>
+    <div class="expansion-checkboxes" id="expansionCheckboxes"></div>
+  </div>
+
+  <main>
+    <div class="sections-row">
+      <section class="section" id="deckSection">
+        <h2>Колода / В игре</h2>
+        <div class="faction-counters" id="deckCounters"></div>
+        <div class="faction-columns">
+          <div class="faction-block">
+            <h3>Атрейдесы/Фримены</h3>
+            <div class="cards-list" id="deckA"></div>
+          </div>
+          <div class="faction-block">
+            <h3>Харконнены/Коррино</h3>
+            <div class="cards-list" id="deckB"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="discardSection">
+        <h2>Сброс</h2>
+        <div class="faction-counters" id="discardCounters"></div>
+        <div class="faction-columns">
+          <div class="faction-block">
+            <h3>Атрейдесы/Фримены</h3>
+            <div class="cards-list" id="discardA"></div>
+          </div>
+          <div class="faction-block">
+            <h3>Харконнены/Коррино</h3>
+            <div class="cards-list" id="discardB"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="calculator-section">
+      <h2>Калькулятор вероятностей</h2>
+      <div class="calc-mode-toggle">
+        <label><input type="radio" name="calcMode" value="card" checked> Конкретная карта</label>
+        <label><input type="radio" name="calcMode" value="tag"> Тег карты</label>
+      </div>
+      <div class="calculator-controls">
+        <div class="control-group" id="cardSelectGroup">
+          <label>Выберите карту</label>
+          <select id="cardSelect"></select>
+        </div>
+        <div class="control-group" id="tagSelectGroup" style="display: none;">
+          <label>Выберите тег</label>
+          <select id="tagSelect"></select>
+        </div>
+        <div class="control-group">
+          <label>Общая группа</label>
+          <select id="factionSelect">
+            <option value="Атрейдесы/Фримены">Атрейдесы/Фримены</option>
+            <option value="Харконнены/Коррино">Харконнены/Коррино</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Конкретная фракция</label>
+          <select id="specificFactionSelect">
+            <option value="">Все (Атрейдесы/Фримены)</option>
+            <option value="Атрейдесы">Атрейдесы</option>
+            <option value="Фримены">Фримены</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Размер руки оппонента</label>
+          <input type="number" id="handSize" value="5" min="1" max="20">
+        </div>
+        <button class="btn-calculate" id="calcBtn">Рассчитать вероятность</button>
+      </div>
+      <div class="result-box" id="resultBox">
+        <span class="result-placeholder">Результат появится здесь после расчёта.</span>
+      </div>
+    </section>
+  </main>
+
+  <!-- Модальное окно детального просмотра карты -->
+  <div class="card-modal-overlay" id="cardModal" aria-hidden="true">
+    <div class="card-modal-content">
+      <button class="card-modal-close" id="cardModalClose" type="button" aria-label="Закрыть">×</button>
+      <div class="card-modal-card" id="cardModalBody">
+        <!-- Контент заполняется при открытии -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Загрузка карт из внешнего файла -->
+  <script src="cards.js"></script>
+  <script>
+    // Проверка загрузки карт
+    if (typeof CARDS === 'undefined') {
+      document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#e94560;">' +
+        'Ошибка: файл cards.js не загружен или не содержит константу CARDS. Проверьте наличие файла cards.js в папке проекта.</div>';
+      throw new Error('CARDS not loaded');
+    }
+
+    // Маппинг фракций: конкретная фракция -> группа (A/B)
+    const FACTION_MAP = {
+      'Атрейдесы': { group: 'Атрейдесы/Фримены', groupKey: 'A', cssClass: 'atreides' },
+      'Фримены':   { group: 'Атрейдесы/Фримены', groupKey: 'A', cssClass: 'atreides' },
+      'Харконнены': { group: 'Харконнены/Коррино', groupKey: 'B', cssClass: 'harkonnen' },
+      'Коррино':   { group: 'Харконнены/Коррино', groupKey: 'B', cssClass: 'harkonnen' }
+    };
+    const GROUP_A = 'Атрейдесы/Фримены';
+    const GROUP_B = 'Харконнены/Коррино';
+
+    const EXPANSION_NAMES = {
+      'base': 'Базовая игра',
+      'guild': 'Космическая гильдия',
+      'smuglers': 'Контрабандисты'
+    };
+
+    let selectedExpansions = new Set();
+    let dragPayload = null;
+
+    function getUniqueExpansions() {
+      return [...new Set(CARDS.map(c => c.expansion || 'base'))].sort();
+    }
+
+    function isCardVisible(card) {
+      return selectedExpansions.has(card?.expansion || 'base');
+    }
+
+    function getFactionKey(specificFaction) {
+      return FACTION_MAP[specificFaction]?.groupKey ?? 'B';
+    }
+    function getGroupByFaction(specificFaction) {
+      return FACTION_MAP[specificFaction]?.group ?? GROUP_B;
+    }
+
+    // === STATE ===
+    let state = {
+      deckA: [],
+      deckB: [],
+      discardA: [],
+      discardB: [],
+    };
+
+    // === INIT ===
+    function init() {
+      CARDS.forEach((card, i) => {
+        if (card.id === undefined) card.id = i;
+        card.expansion = card.expansion || 'base';
+        const key = getFactionKey(card.faction);
+        if (key === 'A') state.deckA.push(card.id);
+        else state.deckB.push(card.id);
+      });
+
+      selectedExpansions = new Set(getUniqueExpansions());
+      populateSelects();
+      renderExpansionFilters();
+      setupEventListeners();
+      render();
+    }
+
+    function getCardById(id) {
+      return CARDS.find(c => c.id == id);
+    }
+
+    function getCardsInDeck(faction) {
+      const ids = faction === 'A' ? state.deckA : state.deckB;
+      return ids.map(id => getCardById(id)).filter(Boolean);
+    }
+
+    function getCardsInDiscard(faction) {
+      const ids = faction === 'A' ? state.discardA : state.discardB;
+      return ids.map(id => getCardById(id)).filter(Boolean);
+    }
+
+    function getUniqueTags() {
+      return [...new Set(CARDS.filter(isCardVisible).flatMap(c => c.tags || []))].sort();
+    }
+
+    function renderExpansionFilters() {
+      const container = document.getElementById('expansionCheckboxes');
+      container.innerHTML = '';
+      getUniqueExpansions().forEach(exp => {
+        const label = document.createElement('label');
+        label.className = 'expansion-checkbox-item';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = selectedExpansions.has(exp);
+        cb.dataset.expansion = exp;
+        cb.addEventListener('change', () => {
+          if (cb.checked) selectedExpansions.add(exp);
+          else selectedExpansions.delete(exp);
+          render();
+          populateSelects();
+          filterCardSelectByFaction();
+        });
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(EXPANSION_NAMES[exp] ?? exp));
+        container.appendChild(label);
+      });
+    }
+
+    function updateSpecificFactionSelect() {
+      const group = document.getElementById('factionSelect').value;
+      const sel = document.getElementById('specificFactionSelect');
+      sel.innerHTML = '';
+      if (group === GROUP_A) {
+        sel.appendChild(new Option('Все (Атрейдесы/Фримены)', ''));
+        sel.appendChild(new Option('Атрейдесы', 'Атрейдесы'));
+        sel.appendChild(new Option('Фримены', 'Фримены'));
+      } else {
+        sel.appendChild(new Option('Все (Харконнены/Коррино)', ''));
+        sel.appendChild(new Option('Харконнены', 'Харконнены'));
+        sel.appendChild(new Option('Коррино', 'Коррино'));
+      }
+    }
+
+    function populateSelects() {
+      const cardSelect = document.getElementById('cardSelect');
+      const tagSelect = document.getElementById('tagSelect');
+
+      cardSelect.innerHTML = '<option value="">— Выберите карту —</option>';
+      CARDS.filter(isCardVisible).forEach(card => {
+        const opt = document.createElement('option');
+        opt.value = card.id;
+        opt.textContent = card.name;
+        opt.dataset.faction = card.faction;
+        opt.dataset.groupKey = getFactionKey(card.faction);
+        cardSelect.appendChild(opt);
+      });
+
+      updateSpecificFactionSelect();
+
+      tagSelect.innerHTML = '<option value="">— Выберите тег —</option>';
+      getUniqueTags().forEach(tag => {
+        const opt = document.createElement('option');
+        opt.value = tag;
+        opt.textContent = tag;
+        tagSelect.appendChild(opt);
+      });
+    }
+
+    function setupEventListeners() {
+      document.getElementById('searchInput').addEventListener('input', () => render());
+      document.getElementById('calcBtn').addEventListener('click', calculateProbability);
+
+      document.querySelectorAll('input[name="calcMode"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+          const mode = document.querySelector('input[name="calcMode"]:checked').value;
+          document.getElementById('cardSelectGroup').style.display = mode === 'card' ? 'flex' : 'none';
+          document.getElementById('tagSelectGroup').style.display = mode === 'tag' ? 'flex' : 'none';
+        });
+      });
+
+      document.getElementById('factionSelect').addEventListener('change', () => {
+        updateSpecificFactionSelect();
+        filterCardSelectByFaction();
+      });
+      document.getElementById('specificFactionSelect').addEventListener('change', filterCardSelectByFaction);
+
+      // Закрытие модального окна карты
+      document.getElementById('cardModalClose').addEventListener('click', closeCardModal);
+      document.getElementById('cardModal').addEventListener('click', (e) => {
+        if (e.target.id === 'cardModal') closeCardModal();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.getElementById('cardModal').classList.contains('is-open')) {
+          closeCardModal();
+        }
+      });
+
+      // Drag and drop: deck section (return from discard - any area)
+      const deckSection = document.getElementById('deckSection');
+      deckSection.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const data = dragPayload;
+        if (!data || data.from !== 'discard') return;
+        deckSection.classList.add('drag-over');
+      });
+      deckSection.addEventListener('dragleave', (e) => {
+        if (!deckSection.contains(e.relatedTarget)) deckSection.classList.remove('drag-over');
+      });
+      deckSection.addEventListener('drop', (e) => {
+        e.preventDefault();
+        deckSection.classList.remove('drag-over');
+        const data = dragPayload;
+        if (!data || data.from !== 'discard') return;
+        returnToDeck(data.cardId, data.faction);
+      });
+
+      // Drag and drop: discard section (deck to discard - any area)
+      const discardSection = document.getElementById('discardSection');
+      discardSection.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const data = dragPayload;
+        if (!data || data.from !== 'deck') return;
+        discardSection.classList.add('drag-over');
+      });
+      discardSection.addEventListener('dragleave', (e) => {
+        if (!discardSection.contains(e.relatedTarget)) discardSection.classList.remove('drag-over');
+      });
+      discardSection.addEventListener('drop', (e) => {
+        e.preventDefault();
+        discardSection.classList.remove('drag-over');
+        const data = dragPayload;
+        if (!data || data.from !== 'deck') return;
+        moveToDiscard(data.cardId, data.faction);
+      });
+    }
+
+    function buildModalTagsHtml(card) {
+      const tags = card.tags || [];
+      return tags.map(t => `<span class="tag-chip tag-chip--modal">${escapeHtml(t)}</span>`).join(' ');
+    }
+
+    function openCardModal(card) {
+      const modal = document.getElementById('cardModal');
+      const content = modal.querySelector('.card-modal-content');
+      const body = document.getElementById('cardModalBody');
+      const factionClass = FACTION_MAP[card.faction]?.cssClass ?? 'harkonnen';
+      const tagsHtml = buildModalTagsHtml(card);
+      content.className = 'card-modal-content card-modal-content--' + factionClass;
+      body.innerHTML = `
+        <div class="card-modal-name">${escapeHtml(card.name)}</div>
+        <span class="card-modal-faction card-modal-faction--${factionClass}">${escapeHtml(card.faction)}</span>
+        <div class="card-modal-tags">${tagsHtml}</div>
+        <div class="card-modal-text">${escapeHtml(card.text)}</div>
+      `;
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeCardModal() {
+      const modal = document.getElementById('cardModal');
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    function filterCardSelectByFaction() {
+      const group = document.getElementById('factionSelect').value;
+      const specificFaction = document.getElementById('specificFactionSelect').value;
+      const groupKey = group === GROUP_A ? 'A' : 'B';
+      const cardSelect = document.getElementById('cardSelect');
+      Array.from(cardSelect.options).forEach(opt => {
+        if (opt.value === '') return;
+        const matchGroup = opt.dataset.groupKey === groupKey;
+        const matchSpecific = !specificFaction || opt.dataset.faction === specificFaction;
+        opt.style.display = matchGroup && matchSpecific ? '' : 'none';
+      });
+    }
+
+    function matchesSearch(card, query) {
+      if (!query || !query.trim()) return true;
+      const q = query.trim().toLowerCase();
+      const tagsMatch = (card.tags || []).some(t => t.toLowerCase().includes(q));
+      const factionMatch = (card.faction || '').toLowerCase().includes(q);
+      return (
+        card.name.toLowerCase().includes(q) ||
+        factionMatch ||
+        tagsMatch ||
+        card.text.toLowerCase().includes(q)
+      );
+    }
+
+    function renderCard(card, location, faction) {
+      if (!card || getFactionKey(card.faction) !== faction) return null;
+      if (!isCardVisible(card)) return null;
+      const query = document.getElementById('searchInput').value;
+      if (!matchesSearch(card, query)) return null;
+
+      const div = document.createElement('div');
+      const factionClass = FACTION_MAP[card.faction]?.cssClass ?? 'harkonnen';
+      div.className = 'card-tile card-tile--' + factionClass;
+      div.dataset.cardId = card.id;
+      div.draggable = true;
+
+      const textShort = card.text.length > 50 ? card.text.slice(0, 47) + '...' : card.text;
+      const tagsHtml = (card.tags || []).map(t => `<span class="tag-chip">${escapeHtml(t)}</span>`).join(' ');
+
+      div.innerHTML = `
+        <div class="card-info">
+          <div class="card-name">${escapeHtml(card.name)}</div>
+          <span class="card-faction-specific">Фракция: ${escapeHtml(card.faction)}</span>
+          <div class="card-tags">${tagsHtml}</div>
+          <div class="card-text">${escapeHtml(textShort)}</div>
+        </div>
+        <div class="card-actions"></div>
+      `;
+
+      const actions = div.querySelector('.card-actions');
+      if (location === 'deck') {
+        const btn = document.createElement('button');
+        btn.className = 'btn-discard';
+        btn.textContent = 'В сброс';
+        btn.onclick = (e) => { e.stopPropagation(); moveToDiscard(card.id, faction); };
+        actions.appendChild(btn);
+      } else {
+        const btn = document.createElement('button');
+        btn.className = 'btn-return';
+        btn.textContent = 'Вернуть в игру';
+        btn.onclick = (e) => { e.stopPropagation(); returnToDeck(card.id, faction); };
+        actions.appendChild(btn);
+      }
+
+      div.addEventListener('click', (e) => {
+        if (!e.target.closest('.card-actions')) openCardModal(card);
+      });
+
+      div.addEventListener('dragstart', (e) => {
+        dragPayload = { cardId: card.id, faction: faction, from: location };
+        e.dataTransfer.setData('application/json', JSON.stringify(dragPayload));
+        e.dataTransfer.effectAllowed = 'move';
+        div.classList.add('dragging');
+      });
+      div.addEventListener('dragend', () => {
+        dragPayload = null;
+        div.classList.remove('dragging');
+        document.querySelectorAll('.cards-list.drag-over, #discardSection.drag-over, #deckSection.drag-over').forEach(el => el.classList.remove('drag-over'));
+      });
+
+      return div;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function render() {
+      ['A', 'B'].forEach(faction => {
+        const deckEl = document.getElementById(`deck${faction}`);
+        const discardEl = document.getElementById(`discard${faction}`);
+
+        deckEl.innerHTML = '';
+        const deckCards = getCardsInDeck(faction);
+        if (deckCards.length === 0) {
+          deckEl.innerHTML = '<div class="empty-state">Нет карт в колоде</div>';
+        } else {
+          let added = 0;
+          deckCards.forEach(card => {
+            const el = renderCard(card, 'deck', faction);
+            if (el) { deckEl.appendChild(el); added++; }
+          });
+          if (added === 0) {
+            deckEl.innerHTML = '<div class="empty-state">Нет совпадений по поиску</div>';
+          }
+        }
+
+        discardEl.innerHTML = '';
+        const discardCards = getCardsInDiscard(faction);
+        if (discardCards.length === 0) {
+          discardEl.innerHTML = '<div class="empty-state">Сброс пуст</div>';
+        } else {
+          let added = 0;
+          discardCards.forEach(card => {
+            const el = renderCard(card, 'discard', faction);
+            if (el) { discardEl.appendChild(el); added++; }
+          });
+          if (added === 0) {
+            discardEl.innerHTML = '<div class="empty-state">Нет совпадений по поиску</div>';
+          }
+        }
+      });
+
+      updateFactionCounters();
+      filterCardSelectByFaction();
+    }
+
+    function getFactionBreakdown(ids) {
+      const cards = ids.map(id => getCardById(id)).filter(Boolean);
+      const counts = {};
+      cards.forEach(c => { counts[c.faction] = (counts[c.faction] || 0) + 1; });
+      return counts;
+    }
+
+    function formatBreakdown(counts, groupFactions) {
+      const parts = groupFactions.filter(f => counts[f] > 0).map(f => `${f}: ${counts[f]}`);
+      return parts.length ? ` (${parts.join(' | ')})` : '';
+    }
+
+    function updateFactionCounters() {
+      const visibleDeckA = state.deckA.filter(id => isCardVisible(getCardById(id)));
+      const visibleDeckB = state.deckB.filter(id => isCardVisible(getCardById(id)));
+      const visibleDiscardA = state.discardA.filter(id => isCardVisible(getCardById(id)));
+      const visibleDiscardB = state.discardB.filter(id => isCardVisible(getCardById(id)));
+      const deckA = getFactionBreakdown(visibleDeckA);
+      const deckB = getFactionBreakdown(visibleDeckB);
+      const discardA = getFactionBreakdown(visibleDiscardA);
+      const discardB = getFactionBreakdown(visibleDiscardB);
+      const factionsA = ['Атрейдесы', 'Фримены'];
+      const factionsB = ['Харконнены', 'Коррино'];
+
+      const text = `${GROUP_A}: всего ${visibleDeckA.length}${formatBreakdown(deckA, factionsA)} в игре | всего ${visibleDiscardA.length}${formatBreakdown(discardA, factionsA)} в сбросе<br>` +
+        `${GROUP_B}: всего ${visibleDeckB.length}${formatBreakdown(deckB, factionsB)} в игре | всего ${visibleDiscardB.length}${formatBreakdown(discardB, factionsB)} в сбросе`;
+      document.getElementById('deckCounters').innerHTML = text;
+      document.getElementById('discardCounters').innerHTML = text;
+    }
+
+    function moveToDiscard(cardId, faction) {
+      const deck = faction === 'A' ? state.deckA : state.deckB;
+      const discard = faction === 'A' ? state.discardA : state.discardB;
+      const idx = deck.indexOf(cardId);
+      if (idx === -1) return;
+      deck.splice(idx, 1);
+      discard.push(cardId);
+      render();
+    }
+
+    function returnToDeck(cardId, faction) {
+      const deck = faction === 'A' ? state.deckA : state.deckB;
+      const discard = faction === 'A' ? state.discardA : state.discardB;
+      const idx = discard.indexOf(cardId);
+      if (idx === -1) return;
+      discard.splice(idx, 1);
+      deck.push(cardId);
+      render();
+    }
+
+    // === COMBINATORICS ===
+    function combinations(n, k) {
+      if (k < 0 || k > n) return 0;
+      if (k === 0 || k === n) return 1;
+      k = Math.min(k, n - k);
+      let result = 1;
+      for (let i = 0; i < k; i++) {
+        result = result * (n - i) / (i + 1);
+      }
+      return result;
+    }
+
+    // === PROBABILITY ===
+    function calculateProbability() {
+      const mode = document.querySelector('input[name="calcMode"]:checked').value;
+      const group = document.getElementById('factionSelect').value;
+      const specificFaction = document.getElementById('specificFactionSelect').value;
+      const factionKey = group === GROUP_A ? 'A' : 'B';
+      const handSize = parseInt(document.getElementById('handSize').value, 10);
+      const resultBox = document.getElementById('resultBox');
+
+      let deckIds = (factionKey === 'A' ? state.deckA : state.deckB).filter(id => isCardVisible(getCardById(id)));
+      if (specificFaction) {
+        deckIds = deckIds.filter(id => {
+          const card = getCardById(id);
+          return card && card.faction === specificFaction;
+        });
+      }
+      const N = deckIds.length;
+
+      if (N === 0) {
+        resultBox.innerHTML = '<span class="result-error">В колоде нет карт. Верните карты из сброса.</span>';
+        return;
+      }
+
+      const fullDeckIds = (factionKey === 'A' ? state.deckA : state.deckB).filter(id => isCardVisible(getCardById(id)));
+      const H = Math.max(1, Math.min(handSize, 20));
+      if (H > fullDeckIds.length) {
+        resultBox.innerHTML = `<span class="result-error">Размер руки (${H}) не может быть больше числа карт в игре (${fullDeckIds.length}).</span>`;
+        return;
+      }
+
+      let probability = 0;
+
+      if (mode === 'card') {
+        const cardId = document.getElementById('cardSelect').value;
+        if (!cardId) {
+          resultBox.innerHTML = '<span class="result-error">Выберите карту.</span>';
+          return;
+        }
+        const card = getCardById(cardId);
+        const inGroup = getFactionKey(card?.faction) === factionKey;
+        const matchSpecific = !specificFaction || card?.faction === specificFaction;
+        if (!card || !inGroup || !matchSpecific || !deckIds.some(id => id == cardId)) {
+          resultBox.innerHTML = '<span class="result-error">Выбранная карта не в колоде этой фракции.</span>';
+          return;
+        }
+        const cTotal = combinations(fullDeckIds.length, H);
+        const cWithout = combinations(fullDeckIds.length - 1, H);
+        if (cTotal === 0) {
+          resultBox.innerHTML = '<span class="result-error">Ошибка расчёта.</span>';
+          return;
+        }
+        probability = 1 - cWithout / cTotal;
+        resultBox.innerHTML = `<span class="result-value">${(probability * 100).toFixed(2)}%</span><br>Вероятность, что «${escapeHtml(card.name)}» в руке оппонента (рука ${H}, в игре ${fullDeckIds.length} карт).`;
+      } else {
+        const tag = document.getElementById('tagSelect').value;
+        if (!tag) {
+          resultBox.innerHTML = '<span class="result-error">Выберите тег.</span>';
+          return;
+        }
+        const cardsInDeck = deckIds.map(id => getCardById(id)).filter(Boolean);
+        const K = cardsInDeck.filter(c => (c.tags || []).includes(tag)).length;
+        if (K === 0) {
+          resultBox.innerHTML = `<span class="result-value">0%</span><br>Карт с тегом «${escapeHtml(tag)}» нет в колоде.`;
+          return;
+        }
+        const cTotal = combinations(fullDeckIds.length, H);
+        const cWithout = combinations(fullDeckIds.length - K, H);
+        if (cTotal === 0) {
+          resultBox.innerHTML = '<span class="result-error">Ошибка расчёта.</span>';
+          return;
+        }
+        probability = 1 - cWithout / cTotal;
+        resultBox.innerHTML = `<span class="result-value">${(probability * 100).toFixed(2)}%</span><br>Вероятность, что хотя бы одна карта с тегом «${escapeHtml(tag)}» в руке (${K} из ${fullDeckIds.length} карт, рука ${H}).`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
