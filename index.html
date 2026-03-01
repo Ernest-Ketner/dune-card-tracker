@@ -662,7 +662,7 @@
       const baseIds = new Set(SMUGGLERS_REPLACEMENT.baseCardIds);
       const smugglerIds = new Set(SMUGGLERS_REPLACEMENT.smugglerCardIds);
       if (baseIds.has(card.id)) {
-        return !selectedExpansions.has('smuglers');
+        return selectedExpansions.has('base') && !selectedExpansions.has('smuglers');
       }
       if (smugglerIds.has(card.id)) {
         return selectedExpansions.has('smuglers');
