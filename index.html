@@ -634,12 +634,40 @@
     let selectedExpansions = new Set();
     let dragPayload = null;
 
+    // Замена: 3 Контрабандисты (base) ↔ 3 Дроны-орнитоптеры (smuglers). Порядок по тегам: Размещение войск, пусто, Перемещение войск.
+    let SMUGGLERS_REPLACEMENT = { baseCardIds: [], smugglerCardIds: [] };
+
+    function buildSmugglersReplacement() {
+      const base = CARDS.filter(c => c.name === 'Контрабандисты' && (c.expansion || 'base') === 'base');
+      const smuggler = CARDS.filter(c => c.name === 'Дроны-орнитоптеры' && (c.expansion || '') === 'smuglers');
+      const b1 = base.find(c => (c.tags || []).includes('Размещение войск'));
+      const b2 = base.find(c => (c.tags || []).length === 0);
+      const b3 = base.find(c => (c.tags || []).includes('Перемещение войск'));
+      const s1 = smuggler.find(c => (c.tags || []).length === 0);
+      const s2 = smuggler.find(c => (c.tags || []).includes('Перемещение войск'));
+      const s3 = smuggler.find(c => (c.tags || []).includes('Размещение войск'));
+      SMUGGLERS_REPLACEMENT = {
+        baseCardIds: [b1, b2, b3].filter(Boolean).map(c => c.id),
+        smugglerCardIds: [s1, s2, s3].filter(Boolean).map(c => c.id)
+      };
+    }
+
     function getUniqueExpansions() {
       return [...new Set(CARDS.map(c => c.expansion || 'base'))].sort();
     }
 
     function isCardVisible(card) {
-      return selectedExpansions.has(card?.expansion || 'base');
+      if (!card) return false;
+      const exp = card.expansion || 'base';
+      const baseIds = new Set(SMUGGLERS_REPLACEMENT.baseCardIds);
+      const smugglerIds = new Set(SMUGGLERS_REPLACEMENT.smugglerCardIds);
+      if (baseIds.has(card.id)) {
+        return !selectedExpansions.has('smuglers');
+      }
+      if (smugglerIds.has(card.id)) {
+        return selectedExpansions.has('smuglers');
+      }
+      return selectedExpansions.has(exp);
     }
 
     function getFactionKey(specificFaction) {
@@ -662,12 +690,25 @@
       CARDS.forEach((card, i) => {
         if (card.id === undefined) card.id = i;
         card.expansion = card.expansion || 'base';
+      });
+      buildSmugglersReplacement();
+      selectedExpansions = new Set(getUniqueExpansions());
+
+      const smugglersSelected = selectedExpansions.has('smuglers');
+      const baseSet = new Set(SMUGGLERS_REPLACEMENT.baseCardIds);
+      const smugglerSet = new Set(SMUGGLERS_REPLACEMENT.smugglerCardIds);
+
+      CARDS.forEach((card) => {
         const key = getFactionKey(card.faction);
-        if (key === 'A') state.deckA.push(card.id);
-        else state.deckB.push(card.id);
+        if (key === 'A') {
+          if (baseSet.has(card.id) && smugglersSelected) return;
+          if (smugglerSet.has(card.id) && !smugglersSelected) return;
+          state.deckA.push(card.id);
+        } else {
+          state.deckB.push(card.id);
+        }
       });
 
-      selectedExpansions = new Set(getUniqueExpansions());
       populateSelects();
       renderExpansionFilters();
       setupEventListeners();
@@ -703,8 +744,25 @@
         cb.checked = selectedExpansions.has(exp);
         cb.dataset.expansion = exp;
         cb.addEventListener('change', () => {
+          const wasSmugglers = selectedExpansions.has('smuglers');
           if (cb.checked) selectedExpansions.add(exp);
           else selectedExpansions.delete(exp);
+          const nowSmugglers = selectedExpansions.has('smuglers');
+          if (exp === 'smuglers' && wasSmugglers !== nowSmugglers) {
+            const replaceIn = (arr, fromIds, toIds) => {
+              fromIds.forEach((fromId, i) => {
+                const idx = arr.indexOf(fromId);
+                if (idx !== -1) arr[idx] = toIds[i];
+              });
+            };
+            if (nowSmugglers) {
+              replaceIn(state.deckA, SMUGGLERS_REPLACEMENT.baseCardIds, SMUGGLERS_REPLACEMENT.smugglerCardIds);
+              replaceIn(state.discardA, SMUGGLERS_REPLACEMENT.baseCardIds, SMUGGLERS_REPLACEMENT.smugglerCardIds);
+            } else {
+              replaceIn(state.deckA, SMUGGLERS_REPLACEMENT.smugglerCardIds, SMUGGLERS_REPLACEMENT.baseCardIds);
+              replaceIn(state.discardA, SMUGGLERS_REPLACEMENT.smugglerCardIds, SMUGGLERS_REPLACEMENT.baseCardIds);
+            }
+          }
           render();
           populateSelects();
           filterCardSelectByFaction();
